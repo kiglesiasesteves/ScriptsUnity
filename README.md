@@ -1,5 +1,7 @@
 ### SCRIPTS DE JUGADOR Y CÁMARA
 
+Este repositorio muestra los diferentes tipos de cámara que podemos tener en nuestro juego Roll-A-Ball así como el script del "Player". Aunque aquí tengamos los Scripts es importante recalcar que si ciertas cosas no están bien configuradas en la interfaz de Unity (por ejemplo la tag de "Player" o el objeto a seguir) no podremos utilizar correctamente nuestras cámaras. 
+
 ## JUGADOR
 
 ![Screenshot_20250122_123138](https://github.com/user-attachments/assets/e54cdb58-a4d9-49bb-8c2c-4e912505f59e)
@@ -141,6 +143,7 @@ En este script al final tenemos un método que bloquea la funcionalidad de awsd 
 
 Nuestra cámara principal al inicio se coloca en el punto donde se encuentra nuestra pelota así que después lo sigue en sus movimientos para que nunca perdamos de vista la pelota.
 
+```
 public class CameraController : MonoBehaviour
 {
     // Referencia al objeto jugador.
@@ -165,6 +168,7 @@ public class CameraController : MonoBehaviour
         transform.position = player.transform.position + offset;  
     }
 }
+```
 
 ## CÁMARA PRIMERA PERSONA
 
@@ -172,7 +176,7 @@ public class CameraController : MonoBehaviour
 
 Esta cámara nos permite ver lo que la pelota está viendo en primera persona así que movemos las teclas y la cámara se moverá al son del movimiento
 
-
+```
 public class FirstPersonControllers : MonoBehaviour
 {
     // Velocidad de movimiento de la cámara
@@ -220,7 +224,7 @@ public class FirstPersonControllers : MonoBehaviour
         transform.position += moveDirection.normalized * moveSpeed * Time.deltaTime;
     }
 }
-
+```
 ## CÁMARA HORIZONTAL ELÍPTICA
 
 ![image](https://github.com/user-attachments/assets/bf83aff4-d53e-4af1-853c-075dff47091f)
@@ -228,7 +232,7 @@ public class FirstPersonControllers : MonoBehaviour
 ![image](https://github.com/user-attachments/assets/b10f1e44-e4a6-4dfa-9d14-f709d011df18)
 
 Esta cámara nos permite crear una cámara en movimiento horizontal que no pare de moverse. 
-
+```
 public class CameraControllerHorizontal : MonoBehaviour
 {
     // El objeto (por ejemplo, el jugador) alrededor del cual la cámara rotará.
@@ -259,10 +263,11 @@ public class CameraControllerHorizontal : MonoBehaviour
         transform.LookAt(target);
     }
 }
+```
 ## CAMBIO DE CÁMARA 
 
 El cambio de cámara nos permite cambiar de una cámara a otra simplemente por clicar el botón "C". Así podremos cambiar la cámara que se estea ejecutando en ese momento dependiendo de lo que sea más óptimo para el jugador. 
-
+```
 public class CameraSwitcher : MonoBehaviour 
 {
     // Array de cámaras configuradas en el Inspector. Esto nos permitirá tener varias cámaras en la escena.
@@ -313,6 +318,8 @@ public class CameraSwitcher : MonoBehaviour
         }
     }
 }
+```
+
 
 
 
