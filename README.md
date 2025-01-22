@@ -1,4 +1,4 @@
-### SCRIPTS DE JUGADOR Y CÁMARA
+# SCRIPTS DE JUGADOR Y CÁMARA
 
 Este repositorio muestra los diferentes tipos de cámara que podemos tener en nuestro juego Roll-A-Ball así como el script del "Player". Aunque aquí tengamos los Scripts es importante recalcar que si ciertas cosas no están bien configuradas en la interfaz de Unity (por ejemplo la tag de "Player" o el objeto a seguir) no podremos utilizar correctamente nuestras cámaras. 
 
