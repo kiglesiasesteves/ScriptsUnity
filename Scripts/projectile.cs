@@ -14,6 +14,7 @@ public class Projectile : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Player"))
         {
+            
             // Aquí puedes llamar a un método para dañar al jugador
             other.gameObject.GetComponent<PlayerHealth>().TakeDamage(damage);
             Destroy(gameObject);  // El proyectil se destruye al chocar

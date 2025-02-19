@@ -1,123 +1,146 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
- // Rigidbody of the player.
- private Rigidbody rb; 
+    private Rigidbody rb;
+    private int count;
+    private int winLevel = 5;
 
- // Variable to keep track of collected "PickUp" objects.
- private int count;
+    private float movementX;
+    private float movementY;
+    public string nextSceneName;
+    public float jumpForce = 5f;
+    private bool isGrounded;
+    public PlayerState currentState = PlayerState.Inactive;
 
- // Movement along X and Y axes.
- private float movementX;
- private float movementY;
+    public float speed = 10f;
+    public TextMeshProUGUI countText;
+    public GameObject winTextObject;
+    public Transform cameraTransform; // Transform de la cámara para orientar el movimiento.
+    private Animator animator; // Referencia al Animator del jugador
 
- // Speed at which the player moves.
- public float speed = 0;
-
- // UI text component to display count of "PickUp" objects collected.
- public TextMeshProUGUI countText;
-
- // UI object to display winning text.
- public GameObject winTextObject;
-
- // Start is called before the first frame update.
- void Start()
+    public enum PlayerState
     {
- // Get and store the Rigidbody component attached to the player.
-        rb = GetComponent<Rigidbody>();
+        Inactive,
+        Moving,
+        Jumping,
+        Win
+    }
 
- // Initialize count to zero.
-        count = 0;
-
- // Update the count display.
-        SetCountText();
-
- // Initially set the win text to be inactive.
+    void Start()
+    {
         winTextObject.SetActive(false);
-    }
- 
- // This function is called when a move input is detected.
- void OnMove(InputValue movementValue)
-    {
- // Convert the input value into a Vector2 for movement.
-        Vector2 movementVector = movementValue.Get<Vector2>();
-
- // Store the X and Y components of the movement.
-        movementX = movementVector.x; 
-        movementY = movementVector.y; 
-    }
-
- // FixedUpdate is called once per fixed frame-rate frame.
- private void FixedUpdate() 
-    {
- // Create a 3D movement vector using the X and Y inputs.
-        Vector3 movement = new Vector3 (movementX, 0.0f, movementY);
-
- // Apply force to the Rigidbody to move the player.
-        rb.AddForce(movement * speed); 
-    }
-
- 
- void OnTriggerEnter(Collider other) 
-    {
- // Check if the object the player collided with has the "PickUp" tag.
- if (other.gameObject.CompareTag("PickUp")) 
+        SetCountText();
+        count = 0;
+        rb = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
+        
+        if (animator == null)
         {
- // Deactivate the collided object (making it disappear).
-            other.gameObject.SetActive(false);
+            Debug.LogError("No se encontró el componente Animator en el objeto Player");
+        }
 
- // Increment the count of "PickUp" objects collected.
-            count = count + 1;
-
- // Update the count display.
-            SetCountText();
+        // Si la cámara principal está asignada correctamente en la escena, la buscamos automáticamente.
+        if (cameraTransform == null)
+        {
+            cameraTransform = Camera.main.transform;
         }
     }
 
- // Function to update the displayed count of "PickUp" objects collected.
- void SetCountText() 
+    void OnMove(InputValue movementValue)
     {
- // Update the count text with the current count.
+        // Detectar las teclas de flecha
+        if (Keyboard.current.upArrowKey.isPressed || Keyboard.current.downArrowKey.isPressed ||
+            Keyboard.current.leftArrowKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
+        {
+            Vector2 movementVector = movementValue.Get<Vector2>();
+            movementX = movementVector.x;
+            movementY = movementVector.y;
+        }
+        else
+        {
+            // No se mueve si no se presionan las teclas de flecha
+            movementX = 0;
+            movementY = 0;
+        }
+    }
+
+    void SetCountText()
+    {
         countText.text = "Count: " + count.ToString();
-
- // Check if the count has reached or exceeded the win condition.
- if (count >= 9)
+        if (count >= winLevel)
         {
- // Display the win text.
             winTextObject.SetActive(true);
-
- // Destroy the enemy GameObject.
-            Destroy(GameObject.FindGameObjectWithTag("Enemy"));
+            currentState = PlayerState.Win;  // El jugador ha ganado
+            Debug.Log("Estado del jugador: Win");
+            animator.SetTrigger("HasWon");  // Activar la animación de "Win"
+            StartCoroutine(WaitAndLoadScene());
         }
     }
 
-private void OnCollisionEnter(Collision collision)
-{
- if (collision.gameObject.CompareTag("Enemy"))
+    // Corrutina para esperar 5 segundos antes de cambiar de nivel
+    IEnumerator WaitAndLoadScene()
     {
- // Destroy the current object
-        Destroy(gameObject); 
- 
- // Update the winText to display "You Lose!"
-        winTextObject.gameObject.SetActive(true);
-        winTextObject.GetComponent<TextMeshProUGUI>().text = "You Lose!";
- 
+        yield return new WaitForSeconds(5f); // Esperar 5 segundos
+        SceneManager.LoadScene(nextSceneName); // Cargar la siguiente escena
     }
 
-}
-void Update()
-{
-    // Si detectamos que las teclas WASD están siendo presionadas, evitamos que el jugador se mueva
-    if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D))
+    void FixedUpdate()
     {
-        movementX = 0;
-        movementY = 0;
+        Vector3 forward = cameraTransform.forward;
+        Vector3 right = cameraTransform.right;
+
+        forward.y = 0f;
+        right.y = 0f;
+
+        forward.Normalize();
+        right.Normalize();
+
+        // Movimiento controlado por acelerómetro
+        Vector3 dir = Vector3.zero;
+        dir.x = -Input.acceleration.y;  // Movimiento en el eje X (de izquierda a derecha)
+        dir.z = Input.acceleration.x;   // Movimiento en el eje Z (hacia adelante y hacia atrás)
+
+        // Asegúrate de que el valor de dir no sea mayor que 1 en su magnitud
+        if (dir.sqrMagnitude > 1)
+            dir.Normalize();
+
+        dir *= Time.deltaTime;
+        transform.Translate(dir * speed, Space.World);
+
+        // Control de animaciones según el estado
+        if (dir.magnitude > 0)
+        {
+            if (currentState != PlayerState.Moving)
+            {
+                currentState = PlayerState.Moving;
+                Debug.Log("Estado del jugador: Moving");
+                animator.SetBool("IsInactive", false);  
+            }
+        }
+        else
+        {
+            if (currentState != PlayerState.Inactive)
+            {
+                currentState = PlayerState.Inactive;
+                Debug.Log("Estado del jugador: Inactive");
+                animator.SetBool("IsInactive", true); 
+            }
+        }
     }
-}
 
-
-
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("PickUp"))
+        {
+            other.gameObject.SetActive(false);
+            count += 1;
+            SetCountText();
+            Debug.Log("Objeto recogido. Count: " + count);
+        }
+    }
 }

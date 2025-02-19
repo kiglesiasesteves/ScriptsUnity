@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class EnemySHooting : MonoBehaviour
+public class ShootingFinalEnemy : MonoBehaviour
 {
     public GameObject projectilePrefab;
     public Transform shootingPoint;
@@ -19,7 +19,7 @@ public class EnemySHooting : MonoBehaviour
 
 void Shoot()
 {
-    Debug.Log("Disparando proyectil");
+    Debug.Log("Disparando proyectil Final Enemy");
     Instantiate(projectilePrefab, shootingPoint.position, shootingPoint.rotation);
 }
 

@@ -1,38 +1,38 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
-public class FirstPersonControllers : MonoBehaviour
-{
-    public float moveSpeed = 5f; // Velocidad de movimiento de la cámara
+public class FirstPersonControllers : MonoBehaviour {
+    // Reference to the player GameObject.
+    public GameObject player;
+    // Sensibilidad del ratón
+    public float mouseSensitivity = 100.0f;
+    private float xRotation = 0.0f;
+    private float yRotation = 0.0f;
 
-    void Update()
-    {
-        // Mover la cámara y ajustarla según la dirección del jugador
-        MoveAndRotateCamera();
+    // Start is called before the first frame update
+    void Start(){
+        // Ocultar y bloquear el cursor en el centro de la pantalla
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
-    void MoveAndRotateCamera()
-    {
-        float moveX = 0f;
-        float moveZ = 0f;
+    // LateUpdate is called once per frame after all Update functions have been completed.
+    void LateUpdate(){
+        // Obtener el movimiento del ratón
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-        // Detectar las teclas de movimiento (flechas)
-        if (Keyboard.current.upArrowKey.isPressed) moveZ = 1f;
-        if (Keyboard.current.downArrowKey.isPressed) moveZ = -1f;
-        if (Keyboard.current.rightArrowKey.isPressed) moveX = 1f;
-        if (Keyboard.current.leftArrowKey.isPressed) moveX = -1f;
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        // Calcular la dirección de movimiento
-        Vector3 moveDirection = new Vector3(moveX, 0f, moveZ);
+        yRotation += mouseX;
 
-        if (moveDirection != Vector3.zero)
-        {
-            // Ajustar la rotación de la cámara para que mire en la dirección del movimiento
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection); // Quaternion es una estructura que representa una rotación en 3D y sirve para almacenar y manipular rotaciones
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f); // En esta linea, se interpola entre la rotación actual y la rotación objetivo para que la transición sea suave
-        }
+        // Rotar la cámara en el eje X (vertical) y Y (horizontal)
+        transform.localRotation = Quaternion.Euler(xRotation, yRotation, 0f);
+        // Rotar el jugador en el eje Y (horizontal)
+        player.transform.Rotate(Vector3.up * mouseX);
 
-        // Aplicar movimiento a la cámara
-        transform.position += moveDirection.normalized * moveSpeed * Time.deltaTime;
+        // Asegurarse de que la cámara siga al jugador
+        transform.position = player.transform.position;
     }
 }
